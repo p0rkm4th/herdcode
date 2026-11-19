@@ -1,0 +1,56 @@
+# ~/.codex/config.toml — make the Ollama Herd Codex's default backend.
+# Install Codex first (https://github.com/openai/codex), then either let
+# Ollama wire it up for you:
+#
+#     ollama launch codex
+#
+# …or drop this file in place. The bridge always passes --oss explicitly,
+# so this file mainly sets the defaults for your own terminal sessions.
+
+# Local provider used with --oss. Without this, Codex asks every time.
+oss_provider = "ollama"
+
+# Default model for OSS runs. Must be pulled on the Ollama node Codex
+# talks to (by default the Ollama on this same host, localhost:11434).
+# Your Spec A/B picks:
+#   gpt-oss:20b              — Codex's own default, fits 16 GB
+#   devstral-small-2:24b     — Spec A primary on Hades
+#   qwen3-coder:30b          — Spec B daily driver (24 GB+ nodes)
+model = "gpt-oss:20b"
+
+# Codex needs a real window and local backends don't reliably report one.
+# 64k is the documented floor for coding agents. Your Ollama must match:
+#   OLLAMA_CONTEXT_LENGTH=65536  (bake it into the systemd unit / env)
+model_context_window = 65536
+
+# ---------------------------------------------------------------------------
+# Using the whole Herd instead of one node's Ollama
+# ---------------------------------------------------------------------------
+# Codex's built-in "ollama" provider talks to ONE Ollama (localhost:11434)
+# and speaks the Responses API to it (Ollama >= 0.13.4 serves /v1/responses).
+#
+# To route Codex at the LiteLLM gateway instead — so lab-code can fail over
+# across GPU nodes — the gateway must expose the Responses API on /v1.
+# Current LiteLLM does expose /v1/responses; verify on YOUR deployment
+# before relying on this profile:
+#
+#     curl http://<services-host>:4000/v1/responses -X POST \
+#       -H "Authorization: Bearer $LITELLM_MASTER_KEY" \
+#       -H 'Content-Type: application/json' \
+#       -d '{"model":"lab-code","input":"ping"}'
+#
+# If that answers, uncomment the profile below and run:
+#     codex --profile herd
+# (Custom provider ids must not reuse reserved names: openai, ollama,
+# lmstudio — hence "herd".)
+#
+# [profiles.herd]
+# model = "lab-code"
+# model_provider = "herd"
+# model_context_window = 65536
+#
+# [model_providers.herd]
+# name = "Ollama Herd via LiteLLM"
+# base_url = "http://<services-host-tailscale-ip>:4000/v1"
+# env_key = "LITELLM_MASTER_KEY"
+# wire_api = "responses"

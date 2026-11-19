@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- HERDCODE — a Fold 6 cockpit for Codex (on a bridge host) and the
+     Ollama Herd (direct). Unlike STYXWORKS this app is a network client
+     by design: it declares INTERNET and allows cleartext HTTP, because
+     homelab endpoints live on the tailnet as http://100.x.x.x — the
+     Tailscale mesh (WireGuard) is the encryption/perimeter layer.
+     Never port-forward the endpoints this app talks to. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.hckrslsh.herdcode"
+    android:versionCode="1"
+    android:versionName="1.0.0">
+
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:label="HERDCODE"
+        android:icon="@drawable/ic_launcher"
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="true"
+        android:theme="@android:style/Theme.NoTitleBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|smallestScreenSize|density|keyboardHidden|uiMode|screenLayout">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

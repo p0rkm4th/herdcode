@@ -1,0 +1,37 @@
+# HERDCODE bridge — user systemd unit for the Codex host (Hades).
+# Install:
+#   mkdir -p ~/.config/systemd/user ~/.local/share/herdcode
+#   cp herd_bridge.py ~/.local/share/herdcode/
+#   cp herd-bridge.service ~/.config/systemd/user/
+#   # put HERD_TOKEN etc. in ~/.config/herdcode.env  (chmod 600!)
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now herd-bridge
+#   loginctl enable-linger $USER   # keep it running after logout
+#
+# ~/.config/herdcode.env example:
+#   HERD_TOKEN=<the token you paste into the phone app>
+#   HERD_BIND=100.x.x.x            # this host's Tailscale IP
+#   HERD_REPOS_ROOT=/home/you/workspace
+#   HERD_UPSTREAMS=http://127.0.0.1:11434
+#   CODEX_BIN=/home/you/.local/bin/codex
+
+[Unit]
+Description=HERDCODE bridge (Codex + Ollama Herd for the Fold 6 app)
+After=network-online.target tailscaled.service ollama.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=%h/.config/herdcode.env
+ExecStart=/usr/bin/python3 %h/.local/share/herdcode/herd_bridge.py
+Restart=on-failure
+RestartSec=3
+# The bridge's whole job is running Codex in your repos, so it needs your
+# normal user access — but it should never be reachable off-tailnet.
+# HERD_BIND in the env file is the real control; this is belt-and-braces:
+IPAddressDeny=any
+IPAddressAllow=100.64.0.0/10
+IPAddressAllow=127.0.0.0/8
+
+[Install]
+WantedBy=default.target
